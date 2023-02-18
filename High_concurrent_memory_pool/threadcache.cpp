@@ -12,7 +12,7 @@ void* ThreadCache::Allocate(size_t size)
 		return FetchFromCentralCache(bucketIndex, alignSize);
 	}
 }
-void* ThreadCache::Deallocate(void* ptr, size_t size)
+void ThreadCache::Deallocate(void* ptr, size_t size)
 {
 	assert(ptr != nullptr);
 	assert(size <= MAX_BYTES);
