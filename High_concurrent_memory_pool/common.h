@@ -1,9 +1,17 @@
 #pragma once
 #include <iostream>
 #include <thread>
+#include <mutex>
 #include <cassert>
 using std::cout;
 using std::endl;
+
+//Win64环境下_WIN64和_WIN32都存在，Win32环境下只存在_WIN32
+#ifdef _WIN64
+	typedef unsigned long long PIGE_ID;
+#elif _WIN32
+	typedef size_t PIGE_ID;
+#endif
 
 static const size_t MAX_BYTES = 256 * 1024;//能在threadcache申请的最大字节数
 static const size_t NFREELIST = 208;//桶数
@@ -112,4 +120,61 @@ public://映射规则 : 计算映射的是哪一个自由链表桶
 
 		return -1;
 	}
+};
+
+
+
+//管理多个页的跨度结构
+struct Span
+{
+	Span* _prev = nullptr;//双向链表中的结构
+	Span* _next = nullptr;
+
+	PIGE_ID _pageid = 0;//页号
+	size_t _num = 0;//页的数量
+
+	void* _freelist = nullptr;//自由链表
+	size_t _use_count = 0;//记录已分配给threadcache的页的数量
+};
+
+
+
+//带头双向链表(桶)
+class SpanList
+{
+public:
+	SpanList()
+	{
+		_head = new Span;
+		assert(_head != nullptr);
+		_head->_next = _head;
+		_head->_prev = _head;
+	}
+
+	void Insert(Span* pos, Span* newSpan)
+	{
+		assert(pos);
+		assert(newSpan);
+		Span* prev = pos->_prev;
+		newSpan->_next = pos;
+		prev->_next = newSpan;
+		newSpan->_prev = prev;
+		pos->_prev = newSpan;
+
+	}
+	void Erase(Span* pos)
+	{
+		assert(pos != nullptr);
+		assert(pos != _head);
+
+		Span* prev = pos->_prev;
+		Span* next = pos->_next;
+		prev->_next = next;
+		next->_prev = prev;
+	}
+
+private:
+	Span* _head = nullptr;
+public:
+	std::mutex mtx;//桶锁
 };
