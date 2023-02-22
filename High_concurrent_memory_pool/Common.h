@@ -192,5 +192,5 @@ public:
 private:
 	Span* _head = nullptr;
 public:
-	std::mutex mtx;//Í°Ëø
+	std::mutex _mtx;//Í°Ëø
 };
