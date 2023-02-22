@@ -15,7 +15,8 @@ using std::endl;
 #endif
 
 static const size_t MAX_BYTES = 256 * 1024;//能在threadcache申请的最大字节数
-static const size_t NFREELIST = 208;//桶数
+static const size_t NFREELIST = 208;//thread_cache && central_cache 桶数
+static const size_t NPAGES = 129;//page_cache的桶数+1 || page_cache的最大页数+1 (下标为0位置空出)
 static void*& NextObj(void* obj) { return *(void**)obj; }
 
 class FreeList//自由链表：用于管理切分过的小块内存
