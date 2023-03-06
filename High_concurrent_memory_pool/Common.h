@@ -17,6 +17,7 @@ using std::endl;
 static const size_t MAX_BYTES = 256 * 1024;//能在threadcache申请的最大字节数
 static const size_t NFREELIST = 208;//thread_cache && central_cache 桶数
 static const size_t NPAGES = 129;//page_cache的桶数+1 || page_cache的最大页数+1 (下标为0位置空出)
+static const size_t PAGE_SHIFT = 13;
 static void*& NextObj(void* obj) { return *(void**)obj; }
 
 class FreeList//自由链表：用于管理切分过的小块内存
@@ -137,6 +138,19 @@ public://一次thread_cache从central_cache获取多少个内存块的上限值
 		if (num > 512) num = 512; //小对象一次批量上限高
 		return num;
 	}
+
+public://一次central_cache向page_cache获取多少个页
+	static size_t NumMovePage(size_t size)
+	{
+		size_t num = MoveSize(size);
+		size_t npage = num * size;
+
+		npage >>= PAGE_SHIFT;
+		if (npage == 0)
+			npage = 1;
+
+		return npage;
+	}
 };
 
 
@@ -167,6 +181,9 @@ public:
 		_head->_next = _head;
 		_head->_prev = _head;
 	}
+	Span* Begin() { return _head->_next; }
+	Span* End() { return _head; }
+	void PushFront(Span* span) { Insert(Begin(), span); }
 
 	void Insert(Span* pos, Span* newSpan)
 	{

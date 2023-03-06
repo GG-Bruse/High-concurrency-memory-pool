@@ -1,5 +1,6 @@
 #pragma once
 #include "Common.h"
+#include "PageCache.h"
 
 //¶öººµ¥ÀýÄ£Ê½
 class CentralCache
