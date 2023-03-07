@@ -12,7 +12,7 @@ private:
 	PageCache() {}
 	PageCache(const PageCache&) = delete;
 	static PageCache _sInst;
-	SpanList spanLists[NPAGES];
+	SpanList _spanLists[NPAGES];
 public:
 	std::mutex _pageMutex;//Õû¸öpage_cacheµÄËø
 };

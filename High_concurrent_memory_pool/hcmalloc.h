@@ -5,7 +5,7 @@
 static void* hcmalloc(size_t size)
 {
 	if (pTLSThreadCache == nullptr) pTLSThreadCache = new ThreadCache;
-	cout << std::this_thread::get_id() << ":" << pTLSThreadCache << endl;
+	//cout << std::this_thread::get_id() << ":" << pTLSThreadCache << endl;
 	return pTLSThreadCache->Allocate(size);
 }
 static void hcfree(void* ptr, size_t size) 

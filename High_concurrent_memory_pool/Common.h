@@ -7,11 +7,19 @@
 using std::cout;
 using std::endl;
 
+#ifdef _WIN32
+	#include <windows.h>
+#else
+	// ...
+#endif
+
 //Win64环境下_WIN64和_WIN32都存在，Win32环境下只存在_WIN32
 #ifdef _WIN64
-	typedef unsigned long long PIGE_ID;
+	typedef unsigned long long PAGE_ID;
 #elif _WIN32
-	typedef size_t PIGE_ID;
+	typedef size_t PAGE_ID;
+#else//Linux
+	//...
 #endif
 
 static const size_t MAX_BYTES = 256 * 1024;//能在threadcache申请的最大字节数
@@ -19,6 +27,19 @@ static const size_t NFREELIST = 208;//thread_cache && central_cache 桶数
 static const size_t NPAGES = 129;//page_cache的桶数+1 || page_cache的最大页数+1 (下标为0位置空出)
 static const size_t PAGE_SHIFT = 13;
 static void*& NextObj(void* obj) { return *(void**)obj; }
+
+inline static void* SystemAlloc(size_t kpage)
+{
+#ifdef _WIN32
+	void* ptr = VirtualAlloc(0, kpage << 13, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+#else
+	// linux下brk mmap等
+#endif
+	if (ptr == nullptr) throw std::bad_alloc();
+	return ptr;
+}
+
+
 
 class FreeList//自由链表：用于管理切分过的小块内存
 {
@@ -146,8 +167,7 @@ public://一次central_cache向page_cache获取多少个页
 		size_t npage = num * size;
 
 		npage >>= PAGE_SHIFT;
-		if (npage == 0)
-			npage = 1;
+		if (npage == 0) npage = 1;
 
 		return npage;
 	}
@@ -161,7 +181,7 @@ struct Span
 	Span* _prev = nullptr;//双向链表中的结构
 	Span* _next = nullptr;
 
-	PIGE_ID _pageid = 0;//页号
+	PAGE_ID _pageid = 0;//页号
 	size_t _num = 0;//页的数量
 
 	void* _freeList = nullptr;//自由链表
@@ -181,9 +201,16 @@ public:
 		_head->_next = _head;
 		_head->_prev = _head;
 	}
+
 	Span* Begin() { return _head->_next; }
 	Span* End() { return _head; }
+	bool IsEmpty() { return _head == _head->_next; }
 	void PushFront(Span* span) { Insert(Begin(), span); }
+	Span* PopFront() { 
+		Span* front = _head->_next;
+		Erase(front);
+		return front;
+	}
 
 	void Insert(Span* pos, Span* newSpan)
 	{

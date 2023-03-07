@@ -27,14 +27,14 @@ void* ThreadCache::FetchFromCentralCache(size_t index, size_t size)
 {
 	//慢开始反馈调节算法
 	//并不会一开始一批量向central_cache索要太多，可能使用不完
-	size_t batchNum = std::min(_freeLists[index].MaxSize(), DataHandleRules::MoveSize(size));
+	size_t batchNum = min(_freeLists[index].MaxSize(), DataHandleRules::MoveSize(size));
 	if (batchNum == _freeLists[index].MaxSize()) {
 		_freeLists[index].MaxSize() += 2;//若不断需要size大小的内存，那么batchNum就会不断增长直至上限
 	}
 
 	void* start = nullptr, * end = nullptr;
 	size_t actualNum = CentralCache::GetInstance()->FetchMemoryBlock(start, end, batchNum, size);
-	assert(actualNum > 1);//至少分配一个
+	assert(actualNum > 0);//至少分配一个
 
 	if (actualNum == 1) {
 		assert(start == end);
