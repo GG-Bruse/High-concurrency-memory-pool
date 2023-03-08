@@ -66,3 +66,33 @@ size_t CentralCache::FetchMemoryBlock(void*& start, void*& end, size_t batchNum,
 	_spanLists[index]._mtx.unlock();
 	return actualNum;
 }
+
+void CentralCache::ReleaseListToSpans(void* start, size_t size)
+{
+	size_t bucketIndex = DataHandleRules::Index(size);
+	_spanLists[bucketIndex]._mtx.lock();
+	while (start) 
+	{
+		void* next = NextObj(start);
+		Span* span = PageCache::GetInstance()->MapObjectToSpan(start);
+		NextObj(start) = span->_freeList;
+		span->_freeList = start;
+		span->_use_count--;
+
+		if (span->_use_count == 0) //说明该span切分的内存块都已经归还了，该span可以归还给PageCache
+		{
+			_spanLists[bucketIndex].Erase(span);
+			//span->_freeList = nullptr;
+			span->_next = nullptr;
+			span->_prev = nullptr;
+
+			_spanLists[bucketIndex]._mtx.unlock();
+			PageCache::GetInstance()->_pageMutex.lock();
+			PageCache::GetInstance()->ReleaseSpanToPageCache(span);
+			PageCache::GetInstance()->_pageMutex.unlock();
+			_spanLists[bucketIndex]._mtx.lock();
+		}
+		start = next;
+	}
+	_spanLists[bucketIndex]._mtx.unlock();
+}

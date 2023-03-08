@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include <algorithm>
+#include <unordered_map>
 #include <thread>
 #include <mutex>
 #include <cassert>
@@ -49,25 +50,43 @@ public:
 		assert(obj != nullptr);
 		NextObj(obj) = _freeList;
 		_freeList = obj;
+		++_size;
 	}
 	void* Pop()
 	{
 		assert(_freeList != nullptr);
 		void* obj = _freeList;
 		_freeList = NextObj(obj);
+		--_size;
 		return obj;
 	}
 
-	void PushRange(void* start,void* end)//头插一段内存块
+	void PushRange(void* start, void* end, size_t n)//头插一段内存块
 	{
 		NextObj(end) = _freeList;
 		_freeList = start;
+		_size += n;
 	}
+	void PopRange(void*& start, void*& end, size_t n) 
+	{
+		assert(n <= _size);
+		start = _freeList;
+		end = start;
+		for (size_t i = 0; i < n; ++i) {
+			end = NextObj(end);
+		}
+		_freeList = NextObj(end);
+		NextObj(end) = nullptr;
+		_size -= n;
+	}
+
 	bool IsEmpty() { return _freeList == nullptr; }
 	size_t& MaxSize() { return _maxSize; }
+	size_t Size() { return _size; }
 private:
 	void* _freeList = nullptr;
 	size_t _maxSize = 1;
+	size_t _size = 0;
 };
 
 
