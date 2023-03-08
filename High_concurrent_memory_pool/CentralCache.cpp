@@ -20,10 +20,11 @@ Span* CentralCache::GetOneSpan(SpanList& list, size_t size)
 	//运行到此处时即没有空闲span，只能向Page_cache索取
 	PageCache::GetInstance()->_pageMutex.lock();
 	Span* span = PageCache::GetInstance()->NewSpan(DataHandleRules::NumMovePage(size));
+	span->_IsUse = true;
 	PageCache::GetInstance()->_pageMutex.unlock();
 
 	//计算span的大块内存的起始地址和大块内存的大小(字节数)
-	char* start = (char*)(span->_pageid << PAGE_SHIFT);
+	char* start = (char*)(span->_pageId << PAGE_SHIFT);
 	size_t bytes = span->_num << PAGE_SHIFT;
 	char* end = start + bytes;
 
@@ -41,6 +42,8 @@ Span* CentralCache::GetOneSpan(SpanList& list, size_t size)
 	list.PushFront(span);//将span挂入对应的桶中
 	return span;
 }
+
+
 
 size_t CentralCache::FetchMemoryBlock(void*& start, void*& end, size_t batchNum, size_t size)
 {
@@ -67,6 +70,8 @@ size_t CentralCache::FetchMemoryBlock(void*& start, void*& end, size_t batchNum,
 	return actualNum;
 }
 
+
+
 void CentralCache::ReleaseListToSpans(void* start, size_t size)
 {
 	size_t bucketIndex = DataHandleRules::Index(size);
@@ -82,7 +87,7 @@ void CentralCache::ReleaseListToSpans(void* start, size_t size)
 		if (span->_use_count == 0) //说明该span切分的内存块都已经归还了，该span可以归还给PageCache
 		{
 			_spanLists[bucketIndex].Erase(span);
-			//span->_freeList = nullptr;
+			span->_freeList = nullptr;//看作整体，可使用页号转换为地址来找到内存
 			span->_next = nullptr;
 			span->_prev = nullptr;
 

@@ -46,8 +46,45 @@ void TestConcurrentAlloc2()
 }
 
 
+void MultiThreadAlloc1()
+{
+	std::vector<void*> v;
+	for (size_t i = 0; i < 7; ++i)
+	{
+		void* ptr = hcmalloc(6);
+		v.push_back(ptr);
+	}
+
+	for (auto e : v) {
+		hcfree(e, 6);
+	}
+}
+void MultiThreadAlloc2()
+{
+	std::vector<void*> v;
+	for (size_t i = 0; i < 7; ++i)
+	{
+		void* ptr = hcmalloc(16);
+		v.push_back(ptr);
+	}
+
+	for (auto e : v) {
+		hcfree(e, 16);
+	}
+}
+
+void TestMultiThread()
+{
+	std::thread t1(MultiThreadAlloc1);
+	std::thread t2(MultiThreadAlloc2);
+
+	t1.join();
+	t2.join();
+}
+
 int main()
 {
-	TestConcurrentAlloc2();
+	TestMultiThread();
+
 	return 0;
 }

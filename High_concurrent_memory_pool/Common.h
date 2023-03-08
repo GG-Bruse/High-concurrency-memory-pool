@@ -72,7 +72,7 @@ public:
 		assert(n <= _size);
 		start = _freeList;
 		end = start;
-		for (size_t i = 0; i < n; ++i) {
+		for (size_t i = 0; i < n - 1; ++i) {
 			end = NextObj(end);
 		}
 		_freeList = NextObj(end);
@@ -200,11 +200,12 @@ struct Span
 	Span* _prev = nullptr;//双向链表中的结构
 	Span* _next = nullptr;
 
-	PAGE_ID _pageid = 0;//页号
+	PAGE_ID _pageId = 0;//页号
 	size_t _num = 0;//页的数量
 
 	void* _freeList = nullptr;//自由链表
 	size_t _use_count = 0;//记录已分配给threadcache的页的数量
+	bool _IsUse = false;//是否被使用
 };
 
 

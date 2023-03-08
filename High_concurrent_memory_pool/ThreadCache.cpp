@@ -25,6 +25,8 @@ void ThreadCache::Deallocate(void* ptr, size_t size)
 		ListTooLong(_freeLists[bucketIndex], size);
 }
 
+
+
 void* ThreadCache::FetchFromCentralCache(size_t index, size_t size)
 {
 	//慢开始反馈调节算法
@@ -47,6 +49,8 @@ void* ThreadCache::FetchFromCentralCache(size_t index, size_t size)
 		return start;//将第一个内存块返回给外面使用
 	}
 }
+
+
 
 void ThreadCache::ListTooLong(FreeList& list, size_t size)
 {
