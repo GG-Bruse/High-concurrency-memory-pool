@@ -29,6 +29,8 @@ static const size_t NPAGES = 129;//page_cache的桶数+1 || page_cache的最大页数+1 
 static const size_t PAGE_SHIFT = 13;
 static void*& NextObj(void* obj) { return *(void**)obj; }
 
+
+
 inline static void* SystemAlloc(size_t kpage)
 {
 #ifdef _WIN32
@@ -38,6 +40,14 @@ inline static void* SystemAlloc(size_t kpage)
 #endif
 	if (ptr == nullptr) throw std::bad_alloc();
 	return ptr;
+}
+inline static void SystemFree(void* ptr)
+{
+#ifdef _WIN32
+	VirtualFree(ptr, 0, MEM_RELEASE);
+#else
+	// sbrk unmmap等
+#endif
 }
 
 
@@ -122,7 +132,7 @@ public://向上对齐规则
 		else if (size < 8 * 1024) return _AlignUp(size, 128);
 		else if (size < 64 * 1024) return _AlignUp(size, 1024);
 		else if (size < 256 * 1024) return _AlignUp(size, 8 * 1024);
-		else exit(-1);
+		else return _AlignUp(size, 1 << PAGE_SHIFT);
 	}
 
 
@@ -206,6 +216,8 @@ struct Span
 	void* _freeList = nullptr;//自由链表
 	size_t _use_count = 0;//记录已分配给threadcache的页的数量
 	bool _IsUse = false;//是否被使用
+
+	size_t _objSize = 0;//切好的小内存块的大小
 };
 
 

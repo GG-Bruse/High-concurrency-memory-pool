@@ -33,6 +33,11 @@ void TestConcurrentAlloc1()
 	cout << p3 << endl;
 	cout << p4 << endl;
 	cout << p5 << endl;
+	hcfree(p1);
+	hcfree(p2);
+	hcfree(p3);
+	hcfree(p4);
+	hcfree(p5);
 }
 void TestConcurrentAlloc2()
 {
@@ -56,7 +61,7 @@ void MultiThreadAlloc1()
 	}
 
 	for (auto e : v) {
-		hcfree(e, 6);
+		hcfree(e);
 	}
 }
 void MultiThreadAlloc2()
@@ -69,7 +74,7 @@ void MultiThreadAlloc2()
 	}
 
 	for (auto e : v) {
-		hcfree(e, 16);
+		hcfree(e);
 	}
 }
 
@@ -82,9 +87,21 @@ void TestMultiThread()
 	t2.join();
 }
 
+
+void BigAlloc()
+{
+	void* p1 = hcmalloc(257 * 1024);
+	hcfree(p1);
+
+	void* p2 = hcmalloc(129 * 8 * 1024);
+	hcfree(p2);
+}
 int main()
 {
+	TestConcurrentAlloc1();
+	TestConcurrentAlloc2();
 	TestMultiThread();
+	BigAlloc();
 
 	return 0;
 }

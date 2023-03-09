@@ -21,6 +21,7 @@ Span* CentralCache::GetOneSpan(SpanList& list, size_t size)
 	PageCache::GetInstance()->_pageMutex.lock();
 	Span* span = PageCache::GetInstance()->NewSpan(DataHandleRules::NumMovePage(size));
 	span->_IsUse = true;
+	span->_objSize = size;
 	PageCache::GetInstance()->_pageMutex.unlock();
 
 	//计算span的大块内存的起始地址和大块内存的大小(字节数)

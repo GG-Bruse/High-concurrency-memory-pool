@@ -1,5 +1,6 @@
 #pragma once
 #include "Common.h"
+#include "ObjectPool.h"
 
 //饿汉单例模式
 class PageCache
@@ -9,12 +10,15 @@ public:
 	Span* NewSpan(size_t k);
 	Span* MapObjectToSpan(void* obj);
 	void ReleaseSpanToPageCache(Span* span);
+
 private:
 	PageCache() {}
 	PageCache(const PageCache&) = delete;
 	static PageCache _sInst;
 	SpanList _spanLists[NPAGES];
 	std::unordered_map<PAGE_ID, Span*> _idSpanMap;
+	ObjectPool<Span> _spanPool;
+
 public:
 	std::mutex _pageMutex;//整个page_cache的锁
 };
