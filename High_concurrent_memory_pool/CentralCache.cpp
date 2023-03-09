@@ -38,6 +38,7 @@ Span* CentralCache::GetOneSpan(SpanList& list, size_t size)
 		tail = NextObj(tail);
 		start += size;
 	}
+	NextObj(tail) = nullptr;
 
 	list._mtx.lock();
 	list.PushFront(span);//将span挂入对应的桶中

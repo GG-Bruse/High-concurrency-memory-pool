@@ -18,7 +18,13 @@ Span* PageCache::NewSpan(size_t k)//获取一个k页的span
 	}
 
 	//检查第k个桶中是否有可用的span
-	if (!_spanLists[k].IsEmpty()) return _spanLists[k].PopFront();
+	if (!_spanLists[k].IsEmpty()) {
+		Span* kSpan = _spanLists[k].PopFront();
+		for (PAGE_ID i = 0; i < kSpan->_num; ++i) {
+			_idSpanMap[kSpan->_pageId + i] = kSpan;
+		}
+		return kSpan;
+	}
 
 	//检查后续的桶中是否有可用的span,若有则进行切分
 	for (int i = k + 1; i < NPAGES; ++i) {

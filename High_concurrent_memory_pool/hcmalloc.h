@@ -23,7 +23,7 @@ static void* hcmalloc(size_t size)
 	{
 		static ObjectPool<ThreadCache> threadCachePool;
 		if (pTLSThreadCache == nullptr) pTLSThreadCache = threadCachePool.New();
-		cout << std::this_thread::get_id() << ":" << pTLSThreadCache << endl;
+		//cout << std::this_thread::get_id() << ":" << pTLSThreadCache << endl;
 		return pTLSThreadCache->Allocate(size);
 	}
 }
