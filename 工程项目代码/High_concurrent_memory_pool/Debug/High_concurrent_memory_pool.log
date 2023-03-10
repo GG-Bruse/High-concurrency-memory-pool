@@ -1,0 +1,9 @@
+﻿  BanchMark.cpp
+  CentralCache.cpp
+  PageCache.cpp
+  ThreadCache.cpp
+  unit_test.cpp
+  正在生成代码...
+LINK : warning LNK4075: 忽略“/INCREMENTAL”(由于“/PROFILE”规范)
+BanchMark.obj : warning LNK4075: 忽略“/EDITANDCONTINUE”(由于“/OPT:REF”规范)
+  High_concurrent_memory_pool.vcxproj -> D:\vs\High_concurrent_memory_pool\Debug\High_concurrent_memory_pool.dll

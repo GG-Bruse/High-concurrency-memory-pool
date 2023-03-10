@@ -1,6 +1,7 @@
 #pragma once
 #include "Common.h"
 #include "ObjectPool.h"
+#include "PageMap.h"
 
 //¶öººµ¥ÀýÄ£Ê½
 class PageCache
@@ -16,7 +17,8 @@ private:
 	PageCache(const PageCache&) = delete;
 	static PageCache _sInst;
 	SpanList _spanLists[NPAGES];
-	std::unordered_map<PAGE_ID, Span*> _idSpanMap;
+	//std::unordered_map<PAGE_ID, Span*> _idSpanMap;
+	HCMalloc_PageMap2<32 - PAGE_SHIFT> _idSpanMap;
 	ObjectPool<Span> _spanPool;
 
 public:
