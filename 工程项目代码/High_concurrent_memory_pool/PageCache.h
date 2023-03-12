@@ -20,7 +20,6 @@ private:
 	//std::unordered_map<PAGE_ID, Span*> _idSpanMap;
 	HCMalloc_PageMap2<32 - PAGE_SHIFT> _idSpanMap;
 	ObjectPool<Span> _spanPool;
-
 public:
 	std::mutex _pageMutex;//Õû¸öpage_cacheµÄËø
 };

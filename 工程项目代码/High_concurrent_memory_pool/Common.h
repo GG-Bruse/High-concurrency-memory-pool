@@ -9,25 +9,19 @@ using std::cout;
 using std::endl;
 
 #ifdef _WIN32
-	#include <windows.h>
+#include <windows.h>
 #else
-	// ...
+// ...
 #endif
 
 //Win64环境下_WIN64和_WIN32都存在，Win32环境下只存在_WIN32
 #ifdef _WIN64
-	typedef unsigned long long PAGE_ID;
+typedef unsigned long long PAGE_ID;
 #elif _WIN32
-	typedef size_t PAGE_ID;
+typedef size_t PAGE_ID;
 #else//Linux
 	//...
 #endif
-
-static const size_t MAX_BYTES = 256 * 1024;//能在threadcache申请的最大字节数
-static const size_t NFREELIST = 208;//thread_cache && central_cache 桶数
-static const size_t NPAGES = 129;//page_cache的桶数+1 || page_cache的最大页数+1 (下标为0位置空出)
-static const size_t PAGE_SHIFT = 13;
-static void*& NextObj(void* obj) { return *(void**)obj; }
 
 
 
@@ -49,6 +43,12 @@ inline static void SystemFree(void* ptr)
 	// sbrk unmmap等
 #endif
 }
+
+static const size_t MAX_BYTES = 256 * 1024;//能在threadcache申请的最大字节数
+static const size_t NFREELIST = 208;//thread_cache && central_cache 桶数
+static const size_t NPAGES = 129;//page_cache的桶数+1 || page_cache的最大页数+1 (下标为0位置空出)
+static const size_t PAGE_SHIFT = 13;
+static void*& NextObj(void* obj) { return *(void**)obj; }
 
 
 
@@ -173,9 +173,8 @@ public://映射规则 : 计算映射的是哪一个自由链表桶
 		}
 		else {
 			assert(false);
+			return -1;
 		}
-
-		return -1;
 	}
 
 public://一次thread_cache从central_cache获取多少个内存块的上限值
@@ -214,7 +213,7 @@ struct Span
 	size_t _num = 0;//页的数量
 
 	void* _freeList = nullptr;//自由链表
-	size_t _use_count = 0;//记录已分配给threadcache的页的数量
+	size_t _use_count = 0;//记录已分配给ThreadCache的小块内存的数量
 	bool _IsUse = false;//是否被使用
 
 	size_t _objSize = 0;//切好的小内存块的大小
