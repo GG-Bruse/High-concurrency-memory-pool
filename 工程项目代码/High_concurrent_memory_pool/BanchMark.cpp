@@ -19,8 +19,8 @@ void BenchmarkMalloc(size_t ntimes, size_t nworks, size_t rounds)
 				size_t begin1 = clock();
 				for (size_t i = 0; i < ntimes; i++)
 				{
-					v.push_back(malloc(16));
-					//v.push_back(malloc((16 + i) % 8192 + 1));
+					//v.push_back(malloc(16));
+					v.push_back(malloc((16 + i) % 8192 + 1));
 				}
 				size_t end1 = clock();
 
@@ -60,7 +60,7 @@ void BenchmarkConcurrentMalloc(size_t ntimes, size_t nworks, size_t rounds)
 
 	for (size_t k = 0; k < nworks; ++k)
 	{
-		vthread[k] = std::thread([&]() {
+		vthread[k] = std::thread([&](std::function<void()> callback) {
 			std::vector<void*> v;
 			v.reserve(ntimes);
 
@@ -69,8 +69,8 @@ void BenchmarkConcurrentMalloc(size_t ntimes, size_t nworks, size_t rounds)
 				size_t begin1 = clock();
 				for (size_t i = 0; i < ntimes; i++)
 				{
-					v.push_back(hcmalloc(16));
-					//v.push_back(hcmalloc((16 + i) % 8192 + 1));
+					//v.push_back(hcmalloc(16));
+					v.push_back(hcmalloc((16 + i) % 8192 + 1));
 				}
 				size_t end1 = clock();
 
@@ -81,11 +81,11 @@ void BenchmarkConcurrentMalloc(size_t ntimes, size_t nworks, size_t rounds)
 				}
 				size_t end2 = clock();
 				v.clear();
-
 				malloc_costtime += (end1 - begin1);
-				free_costtime += (end2 - begin2);
+				free_costtime += (end2 - begin2);		
+				callback();
 			}
-		});
+		}, ThreadCacheClean);
 	}
 
 	for (auto& t : vthread)
@@ -101,9 +101,13 @@ void BenchmarkConcurrentMalloc(size_t ntimes, size_t nworks, size_t rounds)
 		<< malloc_costtime + free_costtime << "ms" << endl;
 }
 
+
+
+
+
 int main()
 {
-	size_t n = 1000;
+	size_t n = 10000;
 	cout << "==========================================================" << endl;
 	BenchmarkConcurrentMalloc(n, 4, 10);
 	cout << endl << endl;

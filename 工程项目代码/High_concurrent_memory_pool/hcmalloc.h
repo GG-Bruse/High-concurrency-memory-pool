@@ -3,6 +3,7 @@
 #include "ThreadCache.h"
 #include "PageCache.h"
 #include "ObjectPool.h"
+#include "CentralCache.h"
 
 static void* hcmalloc(size_t size)
 {
@@ -48,3 +49,23 @@ static void hcfree(void* ptr)
 		pTLSThreadCache->Deallocate(ptr, size);
 	}
 }
+
+static void ThreadCacheClean()
+{
+	//cout << "pTLSThreadCache" << pTLSThreadCache << endl;
+	if (pTLSThreadCache != nullptr)
+	{
+		for (int i = 0; i < NFREELIST; ++i)
+		{
+			FreeList& list = pTLSThreadCache->_freeLists[i];
+			if (list._freeList != nullptr)
+			{
+				void* start = nullptr, * end = nullptr;
+				list.PopRange(start, end, list.Size());
+				Span* span = PageCache::GetInstance()->MapObjectToSpan(start);
+				//cout << "block size:" << span->_objSize << " index:" << i << endl;
+				CentralCache::GetInstance()->ReleaseListToSpans(start, span->_objSize);
+			}
+		}
+	}
+};

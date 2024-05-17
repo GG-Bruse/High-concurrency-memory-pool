@@ -5,13 +5,17 @@
 #include <thread>
 #include <mutex>
 #include <cassert>
+#include <vector>
+#include <functional>
 using std::cout;
 using std::endl;
+using std::min;
 
 #ifdef _WIN32
 #include <windows.h>
 #else
-// ...
+#include <unistd.h>
+#include <sys/mman.h>
 #endif
 
 //Win64环境下_WIN64和_WIN32都存在，Win32环境下只存在_WIN32
@@ -20,7 +24,7 @@ typedef unsigned long long PAGE_ID;
 #elif _WIN32
 typedef size_t PAGE_ID;
 #else//Linux
-	//...
+typedef size_t PAGE_ID;
 #endif
 
 
@@ -30,17 +34,18 @@ inline static void* SystemAlloc(size_t kpage)
 #ifdef _WIN32
 	void* ptr = VirtualAlloc(0, kpage << 13, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
 #else
-	// linux下brk mmap等
+	void* ptr = mmap(0, kpage << 13, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 #endif
 	if (ptr == nullptr) throw std::bad_alloc();
 	return ptr;
 }
-inline static void SystemFree(void* ptr)
+inline static void SystemFree(void* ptr, size_t kpage)
 {
 #ifdef _WIN32
 	VirtualFree(ptr, 0, MEM_RELEASE);
 #else
 	// sbrk unmmap等
+	munmap(ptr, kpage << 13);
 #endif
 }
 
@@ -54,6 +59,7 @@ static void*& NextObj(void* obj) { return *(void**)obj; }
 
 class FreeList//自由链表：用于管理切分过的小块内存
 {
+	friend static void ThreadCacheClean();
 public:
 	void Push(void* obj)
 	{

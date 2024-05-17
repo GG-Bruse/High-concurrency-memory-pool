@@ -86,7 +86,7 @@ void PageCache::ReleaseSpanToPageCache(Span* span)
 	if (span->_num > NPAGES - 1)
 	{
 		void* address = (void*)(span->_pageId << PAGE_SHIFT);
-		SystemFree(address);
+		SystemFree(address, span->_num);
 		_spanPool.Delete(span);
 		return;
 	}

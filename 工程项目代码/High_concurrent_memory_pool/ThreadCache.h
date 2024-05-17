@@ -3,6 +3,7 @@
 
 class ThreadCache
 {
+	friend static void ThreadCacheClean();
 public:
 	void* Allocate(size_t);
 	void Deallocate(void* , size_t);
@@ -13,4 +14,5 @@ private:
 };
 
 // TLS thread local storage
-static _declspec(thread) ThreadCache* pTLSThreadCache = nullptr;
+//static _declspec(thread) ThreadCache* pTLSThreadCache = nullptr;
+static thread_local ThreadCache* pTLSThreadCache = nullptr;

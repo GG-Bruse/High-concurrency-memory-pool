@@ -16,7 +16,7 @@ public:
 		size_t size = sizeof(void*) << BITS;
 		size_t alignSize = DataHandleRules::_AlignUp(size, 1 << PAGE_SHIFT);
 		array_ = (void**)SystemAlloc(alignSize >> PAGE_SHIFT);
-		memset(array_, 0, sizeof(void*) << BITS);
+		memset(array_, 0, size);
 	}
 
 	// Return the current value for KEY.  Returns NULL if not yet set,
@@ -33,6 +33,7 @@ public:
 	//
 	// Sets the value 'v' for key 'k'.
 	void set(Number k, void* v) {
+		assert((k >> BITS) == 0);
 		array_[k] = v;
 	}
 };
@@ -145,6 +146,9 @@ private:
 public:
 	typedef uintptr_t Number;
 
+	explicit HCMalloc_PageMap3() {
+		root_ = NewNode();
+	}
 	explicit HCMalloc_PageMap3(void* (*allocator)(size_t)) {
 		allocator_ = allocator;
 		root_ = NewNode();
@@ -162,7 +166,7 @@ public:
 	}
 
 	void set(Number k, void* v) {
-		ASSERT(k >> BITS == 0);
+		assert(k >> BITS == 0);
 		const Number i1 = k >> (LEAF_BITS + INTERIOR_BITS);
 		const Number i2 = (k >> LEAF_BITS) & (INTERIOR_LENGTH - 1);
 		const Number i3 = k & (LEAF_LENGTH - 1);

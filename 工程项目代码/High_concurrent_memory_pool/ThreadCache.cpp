@@ -1,6 +1,7 @@
 #include "ThreadCache.h"
 #include "CentralCache.h"
 
+
 void* ThreadCache::Allocate(size_t size) 
 {
 	assert(size <= MAX_BYTES);
@@ -23,6 +24,12 @@ void ThreadCache::Deallocate(void* ptr, size_t size)
 	//当链表长度大于一次批量申请的内存时就归还一段自由链表上的内存给CentralCache
 	if (_freeLists[bucketIndex].Size() == _freeLists[bucketIndex].MaxSize())
 		ListTooLong(_freeLists[bucketIndex], size);
+}
+void ThreadCache::ListTooLong(FreeList& list, size_t size)
+{
+	void* start = nullptr, * end = nullptr;
+	list.PopRange(start, end, list.MaxSize());
+	CentralCache::GetInstance()->ReleaseListToSpans(start, size);
 }
 
 
@@ -48,13 +55,4 @@ void* ThreadCache::FetchFromCentralCache(size_t index, size_t size)
 		_freeLists[index].PushRange(NextObj(start), end, actualNum - 1);//将后面的内存头插thread_cache自由链表中
 		return start;//将第一个内存块返回给外面使用
 	}
-}
-
-
-
-void ThreadCache::ListTooLong(FreeList& list, size_t size)
-{
-	void* start = nullptr, * end = nullptr;
-	list.PopRange(start, end, list.MaxSize());
-	CentralCache::GetInstance()->ReleaseListToSpans(start, size);
 }

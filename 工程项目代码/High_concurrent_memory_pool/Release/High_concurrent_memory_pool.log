@@ -1,0 +1,10 @@
+﻿  BanchMark.cpp
+  CentralCache.cpp
+  PageCache.cpp
+  ThreadCache.cpp
+  正在生成代码
+  31 of 278 functions (11.2%) were compiled, the rest were copied from previous compilation.
+    29 functions were new in current compilation
+    2 functions had inline decision re-evaluated but remain unchanged
+  已完成代码的生成
+  High_concurrent_memory_pool.vcxproj -> D:\vs\High_concurrent_memory_pool\Release\High_concurrent_memory_pool.exe
